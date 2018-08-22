@@ -379,11 +379,7 @@ PyObject *KX_Mesh::PyReplaceMaterial(PyObject *args, PyObject *kwds)
 	}
 
 	RAS_BucketManager *bucketmgr = scene->GetBucketManager();
-	bool created = false;
-	RAS_MaterialBucket *bucket = bucketmgr->FindBucket(mat, created);
-
-	// Must never create the material bucket.
-	BLI_assert(created == false);
+	RAS_MaterialBucket *bucket = bucketmgr->FindBucket(mat);
 
 	meshmat->ReplaceMaterial(bucket);
 

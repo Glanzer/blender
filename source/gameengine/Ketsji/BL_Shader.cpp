@@ -33,45 +33,16 @@
 #include "KX_PythonInit.h"
 #include "KX_GameObject.h"
 
-#include "DNA_material_types.h"
-
-#ifdef WITH_PYTHON
-#  include "EXP_PythonCallBack.h"
-#endif  // WITH_PYTHON
-
 #include <boost/format.hpp>
 
 #include "CM_Message.h"
 
-BL_Shader::BL_Shader(CM_UpdateServer<RAS_IMaterial> *materialUpdateServer)
-	:m_attr(SHD_NONE),
-	m_materialUpdateServer(materialUpdateServer)
+BL_Shader::BL_Shader()
 {
-#ifdef WITH_PYTHON
-	for (unsigned short i = 0; i < CALLBACKS_MAX; ++i) {
-		m_callbacks[i] = PyList_New(0);
-	}
-#endif  // WITH_PYTHON
 }
 
 BL_Shader::~BL_Shader()
 {
-#ifdef WITH_PYTHON
-	for (unsigned short i = 0; i < CALLBACKS_MAX; ++i) {
-		Py_XDECREF(m_callbacks[i]);
-	}
-#endif  // WITH_PYTHON
-}
-
-bool BL_Shader::LinkProgram()
-{
-	// Can be null in case of filter shaders.
-	if (m_materialUpdateServer) {
-		// Notify all clients tracking this shader that shader is recompiled and attributes are invalidated.
-		m_materialUpdateServer->NotifyUpdate(RAS_IMaterial::SHADER_MODIFIED | RAS_IMaterial::ATTRIBUTES_MODIFIED);
-	}
-
-	return RAS_Shader::LinkProgram();
 }
 
 std::string BL_Shader::GetName()
@@ -83,96 +54,6 @@ std::string BL_Shader::GetText()
 {
 	return (boost::format("BL_Shader\n\tvertex shader:%s\n\n\tfragment shader%s\n\n") %
 	        m_progs[VERTEX_PROGRAM] % m_progs[FRAGMENT_PROGRAM]).str();
-}
-
-
-#ifdef WITH_PYTHON
-
-PyObject *BL_Shader::GetCallbacks(BL_Shader::CallbacksType type)
-{
-	return m_callbacks[type];
-}
-
-void BL_Shader::SetCallbacks(BL_Shader::CallbacksType type, PyObject *callbacks)
-{
-	Py_XDECREF(m_callbacks[type]);
-	Py_INCREF(callbacks);
-	m_callbacks[type] = callbacks;
-}
-
-#endif  // WITH_PYTHON
-
-RAS_AttributeArray::AttribList BL_Shader::GetAttribs(const RAS_Mesh::LayersInfo& layersInfo,
-                                                     RAS_Texture *const textures[RAS_Texture::MaxUnits]) const
-{
-	RAS_AttributeArray::AttribList attribs;
-	// Initialize textures attributes.
-	for (unsigned short i = 0; i < RAS_Texture::MaxUnits; ++i) {
-		RAS_Texture *texture = textures[i];
-		/* Here textures can return false to Ok() because we're looking only at
-		 * texture attributes and not texture bind id like for the binding and
-		 * unbinding of textures. A nullptr RAS_Texture means that the corresponding
-		 * mtex is nullptr too (see KX_BlenderMaterial::InitTextures).*/
-		if (texture) {
-			MTex *mtex = texture->GetMTex();
-			if (mtex->texco & (TEXCO_OBJECT | TEXCO_REFL)) {
-				attribs.push_back({i, RAS_AttributeArray::RAS_ATTRIB_POS, true, 0});
-			}
-			else if (mtex->texco & (TEXCO_ORCO | TEXCO_GLOB)) {
-				attribs.push_back({i, RAS_AttributeArray::RAS_ATTRIB_POS, true, 0});
-			}
-			else if (mtex->texco & TEXCO_UV) {
-				// UV layer not specified, use default layer.
-				if (strlen(mtex->uvname) == 0) {
-					attribs.push_back({i, RAS_AttributeArray::RAS_ATTRIB_UV, true, layersInfo.activeUv});
-				}
-
-				// Search for the UV layer index used by the texture.
-				for (const RAS_Mesh::Layer& layer : layersInfo.uvLayers) {
-					if (layer.name == mtex->uvname) {
-						attribs.push_back({i, RAS_AttributeArray::RAS_ATTRIB_UV, true, layer.index});
-						break;
-					}
-				}
-			}
-			else if (mtex->texco & TEXCO_NORM) {
-				attribs.push_back({i, RAS_AttributeArray::RAS_ATTRIB_NORM, true, 0});
-			}
-			else if (mtex->texco & TEXCO_TANGENT) {
-				attribs.push_back({i, RAS_AttributeArray::RAS_ATTRIB_TANGENT, true, 0});
-			}
-		}
-	}
-
-	if (m_attr == SHD_TANGENT) {
-		attribs.push_back({1, RAS_AttributeArray::RAS_ATTRIB_TANGENT, false, 0});
-	}
-
-	return attribs;
-}
-
-void BL_Shader::BindProg()
-{
-#ifdef WITH_PYTHON
-	if (PyList_GET_SIZE(m_callbacks[CALLBACKS_BIND]) > 0) {
-		EXP_RunPythonCallBackList(m_callbacks[CALLBACKS_BIND], nullptr, 0, 0);
-	}
-#endif  // WITH_PYTHON
-
-	RAS_Shader::BindProg();
-}
-
-void BL_Shader::Update(RAS_Rasterizer *rasty, RAS_MeshSlot *ms)
-{
-#ifdef WITH_PYTHON
-	if (PyList_GET_SIZE(m_callbacks[CALLBACKS_OBJECT]) > 0) {
-		KX_GameObject *gameobj = KX_GameObject::GetClientObject((KX_ClientObjectInfo *)ms->m_meshUser->GetClientObject());
-		PyObject *args[] = {gameobj->GetProxy()};
-		EXP_RunPythonCallBackList(m_callbacks[CALLBACKS_OBJECT], args, 0, ARRAY_SIZE(args));
-	}
-#endif  // WITH_PYTHON
-
-	RAS_Shader::Update(rasty, mt::mat4(ms->m_meshUser->GetMatrix()));
 }
 
 #ifdef WITH_PYTHON
@@ -195,7 +76,6 @@ PyMethodDef BL_Shader::Methods[] = {
 	EXP_PYMETHODTABLE(BL_Shader, setUniform2i),
 	EXP_PYMETHODTABLE(BL_Shader, setUniform3i),
 	EXP_PYMETHODTABLE(BL_Shader, setUniform4i),
-	EXP_PYMETHODTABLE(BL_Shader, setAttrib),
 	EXP_PYMETHODTABLE(BL_Shader, setUniformfv),
 	EXP_PYMETHODTABLE(BL_Shader, setUniformiv),
 	EXP_PYMETHODTABLE(BL_Shader, setUniformDef),
@@ -207,8 +87,6 @@ PyMethodDef BL_Shader::Methods[] = {
 
 PyAttributeDef BL_Shader::Attributes[] = {
 	EXP_PYATTRIBUTE_RW_FUNCTION("enabled", BL_Shader, pyattr_get_enabled, pyattr_set_enabled),
-	EXP_PYATTRIBUTE_RW_FUNCTION("bindCallbacks", BL_Shader, pyattr_get_callbacks, pyattr_set_callbacks),
-	EXP_PYATTRIBUTE_RW_FUNCTION("objectCallbacks", BL_Shader, pyattr_get_callbacks, pyattr_set_callbacks),
 	EXP_PYATTRIBUTE_NULL //Sentinel
 };
 
@@ -250,31 +128,6 @@ int BL_Shader::pyattr_set_enabled(EXP_PyObjectPlus *self_v, const EXP_PYATTRIBUT
 	}
 
 	self->SetEnabled(param);
-	return PY_SET_ATTR_SUCCESS;
-}
-
-static std::map<const std::string, BL_Shader::CallbacksType> callbacksTable = {
-	{"bindCallbacks", BL_Shader::CALLBACKS_BIND},
-	{"objectCallbacks", BL_Shader::CALLBACKS_OBJECT}
-};
-
-PyObject *BL_Shader::pyattr_get_callbacks(EXP_PyObjectPlus *self_v, const EXP_PYATTRIBUTE_DEF *attrdef)
-{
-	BL_Shader *self = static_cast<BL_Shader *>(self_v);
-	PyObject *callbacks = self->GetCallbacks(callbacksTable[attrdef->m_name]);
-	Py_INCREF(callbacks);
-	return callbacks;
-}
-
-int BL_Shader::pyattr_set_callbacks(EXP_PyObjectPlus *self_v, const EXP_PYATTRIBUTE_DEF *attrdef, PyObject *value)
-{
-	BL_Shader *self = static_cast<BL_Shader *>(self_v);
-	if (!PyList_CheckExact(value)) {
-		PyErr_Format(PyExc_AttributeError, "shader.%s = bool: BL_Shader, expected a list", attrdef->m_name.c_str());
-		return PY_SET_ATTR_FAIL;
-	}
-
-	self->SetCallbacks(callbacksTable[attrdef->m_name], value);
 	return PY_SET_ATTR_SUCCESS;
 }
 
@@ -888,43 +741,6 @@ EXP_PYMETHODDEF_DOC(BL_Shader, setUniformMatrix3,
 #endif
 	Py_RETURN_NONE;
 }
-
-EXP_PYMETHODDEF_DOC(BL_Shader, setAttrib, "setAttrib(enum)")
-{
-	if (!m_shader) {
-		Py_RETURN_NONE;
-	}
-
-	int attr = 0;
-
-	if (!PyArg_ParseTuple(args, "i:setAttrib", &attr)) {
-		return nullptr;
-	}
-
-	attr = SHD_TANGENT; // user input is ignored for now, there is only 1 attr
-
-	if (!m_shader) {
-		PyErr_SetString(PyExc_ValueError, "shader.setAttrib() BL_Shader, invalid shader object");
-		return nullptr;
-	}
-
-	// Avoid redundant attributes reconstruction.
-	if (attr == m_attr) {
-		Py_RETURN_NONE;
-	}
-
-	m_attr = (AttribTypes)attr;
-
-	// Can be null in case of filter shaders.
-	if (m_materialUpdateServer) {
-		// Notify all clients tracking this shader that attributes are modified.
-		m_materialUpdateServer->NotifyUpdate(RAS_IMaterial::ATTRIBUTES_MODIFIED);
-	}
-
-	BindAttribute("Tangent", m_attr);
-	Py_RETURN_NONE;
-}
-
 
 EXP_PYMETHODDEF_DOC(BL_Shader, setUniformDef, "setUniformDef(name, enum)")
 {

@@ -69,7 +69,6 @@ set(INC_SYS
 set(SRC
 	BL_Action.cpp
 	BL_ActionManager.cpp
-	BL_BlenderShader.cpp
 	BL_Shader.cpp
 	BL_Texture.cpp
 	KX_2DFilter.cpp
@@ -102,6 +101,7 @@ set(SRC
 	KX_LodLevel.cpp
 	KX_LodManager.cpp
 	KX_MaterialIpoController.cpp
+	KX_MaterialShader.cpp
 	KX_Mesh.cpp
 	KX_MotionState.cpp
 	KX_MouseActuator.cpp
@@ -137,7 +137,6 @@ set(SRC
 	KX_SoundActuator.cpp
 	KX_StateActuator.cpp
 	KX_SteeringActuator.cpp
-	KX_TextMaterial.cpp
 	KX_TextureRenderer.cpp
 	KX_TextureRendererManager.cpp
 	KX_TimeCategoryLogger.cpp
@@ -152,7 +151,6 @@ set(SRC
 
 	BL_Action.h
 	BL_ActionManager.h
-	BL_BlenderShader.h
 	BL_Shader.h
 	BL_Texture.h
 	KX_2DFilter.h
@@ -185,6 +183,7 @@ set(SRC
 	KX_LodLevel.h
 	KX_LodManager.h
 	KX_MaterialIpoController.h
+	KX_MaterialShader.h
 	KX_Mesh.h
 	KX_MotionState.h
 	KX_MouseActuator.h
@@ -221,7 +220,6 @@ set(SRC
 	KX_SoundActuator.h
 	KX_StateActuator.h
 	KX_SteeringActuator.h
-	KX_TextMaterial.h
 	KX_TextureRenderer.h
 	KX_TextureRendererManager.h
 	KX_TimeCategoryLogger.h

@@ -43,8 +43,7 @@
 #include "BL_ActionData.h"
 #include "BL_Converter.h"
 #include "KX_Globals.h"
-
-#include "RAS_IMaterial.h"
+#include "KX_BlenderMaterial.h"
 
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"
@@ -329,7 +328,7 @@ SG_Controller *BL_CreateWorldIPO(BL_ActionData *action, struct World *blenderwor
 }
 
 SG_Controller *BL_CreateMaterialIpo(BL_ActionData *action,
-                                    RAS_IMaterial *mat,
+                                    KX_BlenderMaterial *mat,
                                     KX_GameObject *gameobj,
                                     KX_Scene *scene)
 {

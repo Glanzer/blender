@@ -26,11 +26,12 @@
 #include "KX_Scene.h"
 #include "KX_PyMath.h"
 
-#include "BL_Shader.h"
-#include "BL_BlenderShader.h"
+#include "BL_MaterialShader.h"
 
 #include "EXP_ListWrapper.h"
 
+#include "KX_MaterialShader.h"
+#include "RAS_OverrideShader.h"
 #include "RAS_BucketManager.h"
 #include "RAS_Rasterizer.h"
 #include "RAS_MeshUser.h"
@@ -43,10 +44,10 @@
 
 KX_BlenderMaterial::KX_BlenderMaterial(Material *mat, const std::string& name, KX_Scene *scene)
 	:RAS_IMaterial(name),
-	m_material(mat),
-	m_shader(nullptr),
-	m_blenderShader(nullptr),
 	m_scene(scene),
+	m_material(mat),
+	m_customShader(nullptr),
+	m_blenderShader(nullptr),
 	m_userDefBlend(false)
 {
 	// Save material data to restore on exit
@@ -64,11 +65,11 @@ KX_BlenderMaterial::KX_BlenderMaterial(Material *mat, const std::string& name, K
 	m_savedData.ambient = m_material->amb;
 	m_savedData.specularalpha = m_material->spectra;
 
-	m_alphablend = mat->game.alpha_blend;
+	m_alphaBlend = mat->game.alpha_blend;
 
 	// with ztransp enabled, enforce alpha blending mode
-	if ((mat->mode & MA_TRANSP) && (mat->mode & MA_ZTRANSP) && (m_alphablend == GEMAT_SOLID)) {
-		m_alphablend = GEMAT_ALPHA;
+	if ((mat->mode & MA_TRANSP) && (mat->mode & MA_ZTRANSP) && (m_alphaBlend == GEMAT_SOLID)) {
+		m_alphaBlend = GEMAT_ALPHA;
 	}
 
 	m_zoffset = mat->zoffs;
@@ -79,11 +80,11 @@ KX_BlenderMaterial::KX_BlenderMaterial(Material *mat, const std::string& name, K
 	m_rasMode |= (mat->material_type == MA_TYPE_WIRE) ? RAS_WIRE : 0;
 	m_rasMode |= (mat->mode2 & MA_DEPTH_TRANSP) ? RAS_DEPTH_ALPHA : 0;
 
-	if (ELEM(m_alphablend, GEMAT_CLIP, GEMAT_ALPHA_TO_COVERAGE)) {
+	if (ELEM(m_alphaBlend, GEMAT_CLIP, GEMAT_ALPHA_TO_COVERAGE)) {
 		m_rasMode |= RAS_ALPHA_SHADOW;
 	}
 	// always zsort alpha + add
-	else if (ELEM(m_alphablend, GEMAT_ALPHA, GEMAT_ALPHA_SORT, GEMAT_ADD)) {
+	else if (ELEM(m_alphaBlend, GEMAT_ALPHA, GEMAT_ALPHA_SORT, GEMAT_ADD)) {
 		m_rasMode |= RAS_ALPHA;
 		m_rasMode |= (mat && (mat->game.alpha_blend & GEMAT_ALPHA_SORT)) ? RAS_ZSORT : 0;
 	}
@@ -136,37 +137,20 @@ KX_BlenderMaterial::~KX_BlenderMaterial()
 	m_material->amb = m_savedData.ambient;
 	m_material->spectra = m_savedData.specularalpha;
 
-	if (m_shader) {
-		delete m_shader;
-		m_shader = nullptr;
-	}
-	if (m_blenderShader) {
-		delete m_blenderShader;
-		m_blenderShader = nullptr;
-	}
-
 	/* used to call with 'm_material->tface' but this can be a freed array,
 	 * see: [#30493], so just call with nullptr, this is best since it clears
 	 * the 'lastface' pointer in GPU too - campbell */
-	GPU_set_tpage(nullptr, 1, m_alphablend);
+	GPU_set_tpage(nullptr, 1, m_alphaBlend);
 }
 
-const RAS_Rasterizer::BlendFunc *KX_BlenderMaterial::GetBlendFunc() const
+bool KX_BlenderMaterial::GetUserBlend() const
+{
+	return m_userDefBlend;
+}
+
+const RAS_Rasterizer::BlendFunc (&KX_BlenderMaterial::GetBlendFunc() const)[2]
 {
 	return m_blendFunc;
-}
-
-void KX_BlenderMaterial::GetRGBAColor(unsigned char *rgba) const
-{
-	if (m_material) {
-		*rgba++ = (unsigned char)(m_material->r * 255.0f);
-		*rgba++ = (unsigned char)(m_material->g * 255.0f);
-		*rgba++ = (unsigned char)(m_material->b * 255.0f);
-		*rgba++ = (unsigned char)(m_material->alpha * 255.0f);
-	}
-	else {
-		RAS_IMaterial::GetRGBAColor(rgba);
-	}
 }
 
 const std::string KX_BlenderMaterial::GetTextureName() const
@@ -177,11 +161,6 @@ const std::string KX_BlenderMaterial::GetTextureName() const
 Material *KX_BlenderMaterial::GetBlenderMaterial() const
 {
 	return m_material;
-}
-
-Scene *KX_BlenderMaterial::GetBlenderScene() const
-{
-	return m_scene->GetBlenderScene();
 }
 
 SCA_IScene *KX_BlenderMaterial::GetScene() const
@@ -199,13 +178,46 @@ void KX_BlenderMaterial::ReloadMaterial()
 	}
 	else {
 		// Create shader.
-		m_blenderShader = new BL_BlenderShader(m_scene, m_material, this);
+		m_blenderShader.reset(new BL_MaterialShader(m_scene, this, m_material, m_alphaBlend));
 
 		if (!m_blenderShader->Ok()) {
-			delete m_blenderShader;
-			m_blenderShader = nullptr;
+			m_blenderShader.reset(nullptr);
 		}
 	}
+}
+
+void KX_BlenderMaterial::Prepare()
+{
+	// TODO : préparer les shader globalement avant la frame (voir avec pre_draw_setup)
+	if (m_customShader && m_customShader->Ok()) {
+		m_shaders[RAS_Rasterizer::RAS_TEXTURED] = m_customShader.get();
+
+		m_shaders[RAS_Rasterizer::RAS_WIREFRAME] =
+				RAS_OverrideShader::GetShader(RAS_OverrideShader::RAS_OVERRIDE_SHADER_BLACK);
+		m_shaders[RAS_Rasterizer::RAS_SHADOW] =
+				RAS_OverrideShader::GetShader(RAS_OverrideShader::RAS_OVERRIDE_SHADER_BLACK);
+		m_shaders[RAS_Rasterizer::RAS_SHADOW_VARIANCE] =
+				RAS_OverrideShader::GetShader(RAS_OverrideShader::RAS_OVERRIDE_SHADER_SHADOW_VARIANCE);
+	}
+	else {
+		m_shaders[RAS_Rasterizer::RAS_TEXTURED] = m_blenderShader.get();
+		const bool useInstancing = m_blenderShader->GetGeomMode() == RAS_IMaterialShader::GEOM_INSTANCING; // TODO table
+
+		m_shaders[RAS_Rasterizer::RAS_WIREFRAME] =
+				RAS_OverrideShader::GetShader(useInstancing ?
+					RAS_OverrideShader::RAS_OVERRIDE_SHADER_BLACK_INSTANCING :
+					RAS_OverrideShader::RAS_OVERRIDE_SHADER_BLACK);
+		m_shaders[RAS_Rasterizer::RAS_SHADOW] =
+				RAS_OverrideShader::GetShader(useInstancing ?
+					RAS_OverrideShader::RAS_OVERRIDE_SHADER_BLACK_INSTANCING :
+					RAS_OverrideShader::RAS_OVERRIDE_SHADER_BLACK);
+		m_shaders[RAS_Rasterizer::RAS_SHADOW_VARIANCE] =
+				RAS_OverrideShader::GetShader(useInstancing ?
+					RAS_OverrideShader::RAS_OVERRIDE_SHADER_SHADOW_VARIANCE_INSTANCING :
+					RAS_OverrideShader::RAS_OVERRIDE_SHADER_SHADOW_VARIANCE);
+	}
+
+	UpdateTextures();
 }
 
 void KX_BlenderMaterial::ReplaceScene(KX_Scene *scene)
@@ -256,149 +268,6 @@ void KX_BlenderMaterial::ApplyTextures()
 	}
 }
 
-void KX_BlenderMaterial::SetShaderData(RAS_Rasterizer *ras)
-{
-	m_shader->BindProg();
-
-	m_shader->ApplyShader();
-
-	ApplyTextures();
-
-	if (!m_userDefBlend) {
-		ras->SetAlphaBlend(m_alphablend);
-	}
-	else {
-		ras->SetAlphaBlend(GPU_BLEND_SOLID);
-		ras->SetAlphaBlend(-1); // indicates custom mode
-
-		// tested to be valid enums
-		ras->Enable(RAS_Rasterizer::RAS_BLEND);
-		ras->SetBlendFunc(m_blendFunc[0], m_blendFunc[1]);
-	}
-}
-
-void KX_BlenderMaterial::SetBlenderShaderData(RAS_Rasterizer *ras)
-{
-	// Don't set the alpha blend here because ActivateMeshSlot do it.
-	m_blenderShader->BindProg(ras);
-}
-
-void KX_BlenderMaterial::ActivateShaders(RAS_Rasterizer *rasty)
-{
-	SetShaderData(rasty);
-	ActivateGLMaterials(rasty);
-}
-
-void KX_BlenderMaterial::ActivateBlenderShaders(RAS_Rasterizer *rasty)
-{
-	SetBlenderShaderData(rasty);
-}
-
-void KX_BlenderMaterial::Prepare(RAS_Rasterizer *rasty)
-{
-	UpdateTextures();
-	if (m_blenderShader && m_blenderShader->Ok()) {
-		m_blenderShader->UpdateLights(rasty);
-	}
-}
-
-void KX_BlenderMaterial::Activate(RAS_Rasterizer *rasty)
-{
-	if (m_shader && m_shader->Ok()) {
-		ActivateShaders(rasty);
-	}
-	else if (m_blenderShader && m_blenderShader->Ok()) {
-		ActivateBlenderShaders(rasty);
-	}
-}
-
-void KX_BlenderMaterial::Desactivate(RAS_Rasterizer *rasty)
-{
-	if (m_shader && m_shader->Ok()) {
-		m_shader->UnbindProg();
-		for (unsigned short i = 0; i < RAS_Texture::MaxUnits; i++) {
-			if (m_textures[i] && m_textures[i]->Ok()) {
-				m_textures[i]->DisableTexture();
-			}
-		}
-	}
-	else if (m_blenderShader && m_blenderShader->Ok()) {
-		m_blenderShader->UnbindProg();
-	}
-}
-
-bool KX_BlenderMaterial::UseInstancing() const
-{
-	if (m_shader && m_shader->Ok()) {
-		return false;
-	}
-	else if (m_blenderShader) {
-		return m_blenderShader->UseInstancing();
-	}
-	// The material is in conversion, we use the blender material flag then.
-	return m_material->shade_flag & MA_INSTANCING;
-}
-
-void KX_BlenderMaterial::ActivateInstancing(RAS_Rasterizer *rasty, RAS_InstancingBuffer *buffer)
-{
-	if (m_blenderShader) {
-		m_blenderShader->ActivateInstancing(buffer);
-	}
-}
-
-bool KX_BlenderMaterial::UsesLighting() const
-{
-	if (!RAS_IMaterial::UsesLighting()) {
-		return false;
-	}
-
-	if (m_shader && m_shader->Ok()) {
-		return true;
-	}
-	else if (m_blenderShader && m_blenderShader->Ok()) {
-		return false;
-	}
-	else {
-		return true;
-	}
-}
-
-void KX_BlenderMaterial::ActivateMeshSlot(RAS_MeshSlot *ms, RAS_Rasterizer *rasty, const mt::mat3x4& camtrans)
-{
-	if (m_shader && m_shader->Ok()) {
-		m_shader->Update(rasty, ms);
-		m_shader->ApplyShader();
-		// Update OpenGL lighting builtins.
-		rasty->ProcessLighting(UsesLighting(), camtrans);
-	}
-	else if (m_blenderShader) {
-		m_blenderShader->Update(ms, rasty);
-
-		/* we do blend modes here, because they can change per object
-		 * with the same material due to obcolor/obalpha */
-		int alphablend = m_blenderShader->GetAlphaBlend();
-		if (ELEM(alphablend, GEMAT_SOLID, GEMAT_ALPHA, GEMAT_ALPHA_SORT) && m_alphablend != GEMAT_SOLID) {
-			alphablend = m_alphablend;
-		}
-
-		rasty->SetAlphaBlend(alphablend);
-	}
-}
-
-void KX_BlenderMaterial::ActivateGLMaterials(RAS_Rasterizer *rasty) const
-{
-	if (m_shader || !m_blenderShader) {
-		rasty->SetSpecularity(m_material->specr * m_material->spec, m_material->specg * m_material->spec,
-		                      m_material->specb * m_material->spec, m_material->spec);
-		rasty->SetShinyness(((float)m_material->har) / 4.0f);
-		rasty->SetDiffuse(m_material->r * m_material->ref + m_material->emit, m_material->g * m_material->ref + m_material->emit,
-		                  m_material->b * m_material->ref + m_material->emit, 1.0f);
-		rasty->SetEmissive(m_material->r * m_material->emit, m_material->g * m_material->emit,
-		                   m_material->b * m_material->emit, 1.0f);
-		rasty->SetAmbient(m_material->amb);
-	}
-}
-
 void KX_BlenderMaterial::UpdateIPO(const mt::vec4 &rgba,
                                    const mt::vec3 &specrgb,
                                    float hard,
@@ -425,27 +294,6 @@ void KX_BlenderMaterial::UpdateIPO(const mt::vec4 &rgba,
 	m_material->spec = (float)(spec);
 	m_material->ref = (float)(ref);
 	m_material->spectra = (float)specalpha;
-}
-
-const RAS_AttributeArray::AttribList KX_BlenderMaterial::GetAttribs(const RAS_Mesh::LayersInfo& layersInfo) const
-{
-	if (m_shader && m_shader->Ok()) {
-		return m_shader->GetAttribs(layersInfo, m_textures);
-	}
-	if (m_blenderShader && m_blenderShader->Ok()) {
-		return m_blenderShader->GetAttribs(layersInfo);
-	}
-
-	return {};
-}
-
-RAS_InstancingBuffer::Attrib KX_BlenderMaterial::GetInstancingAttribs() const
-{
-	if (m_blenderShader && m_blenderShader->Ok()) {
-		return m_blenderShader->GetInstancingAttribs();
-	}
-
-	return RAS_InstancingBuffer::DEFAULT_ATTRIBS;
 }
 
 std::string KX_BlenderMaterial::GetName()
@@ -881,21 +729,16 @@ EXP_PYMETHODDEF_DOC(KX_BlenderMaterial, getShader, "getShader()")
 	// returns Py_None on error
 	// the calling script will need to check
 
-	if (!m_shader) {
-		m_shader = new BL_Shader(this);
+	if (!m_customShader) {
+		m_customShader.reset(new KX_MaterialShader(this, m_flag & RAS_MULTILIGHT, m_alphaBlend));
 	}
 
-	if (!m_shader->GetError()) {
-		return m_shader->GetProxy();
+	if (!m_customShader->GetError()) {
+		return m_customShader->GetProxy();
 	}
 	// We have a shader but invalid.
 	else {
-		// decref all references to the object
-		// then delete it!
-		// We will then go back to fixed functionality
-		// for this material
-		delete m_shader; /* will handle python de-referencing */
-		m_shader = nullptr;
+		m_customShader.reset(nullptr);
 	}
 	Py_RETURN_NONE;
 }

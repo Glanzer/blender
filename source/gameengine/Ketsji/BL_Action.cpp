@@ -34,6 +34,7 @@
 #include "KX_GameObject.h"
 #include "KX_Globals.h"
 #include "KX_Mesh.h"
+#include "KX_BlenderMaterial.h"
 
 #include "RAS_MaterialBucket.h"
 
@@ -182,7 +183,7 @@ bool BL_Action::Play(const std::string& name,
 	// Now try materials
 	for (KX_Mesh *mesh : m_obj->GetMeshList()) {
 		for (RAS_MeshMaterial *meshmat : mesh->GetMeshMaterialList()) {
-			RAS_IMaterial *mat = meshmat->GetBucket()->GetMaterial();
+			KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial *>(meshmat->GetBucket()->GetMaterial());
 			AddController(BL_CreateMaterialIpo(m_actionData, mat, m_obj, kxscene));
 		}
 	}

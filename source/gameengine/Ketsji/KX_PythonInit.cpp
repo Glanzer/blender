@@ -108,6 +108,7 @@ extern "C" {
 #include "EXP_InputParser.h"
 #include "KX_Scene.h"
 #include "KX_Globals.h"
+#include "KX_MaterialShader.h"
 
 #include "KX_NetworkMessageScene.h" //Needed for sendMessage()
 
@@ -1593,7 +1594,7 @@ PyMODINIT_FUNC initGameLogicPythonBinding()
 
 
 	/* 8. UniformTypes */
-	KX_MACRO_addTypesToDict(d, SHD_TANGENT, BL_Shader::SHD_TANGENT);
+	KX_MACRO_addTypesToDict(d, SHD_TANGENT, KX_MaterialShader::SHD_TANGENT);
 	KX_MACRO_addTypesToDict(d, MODELVIEWMATRIX, RAS_Shader::MODELVIEWMATRIX);
 	KX_MACRO_addTypesToDict(d, MODELVIEWMATRIX_TRANSPOSE, RAS_Shader::MODELVIEWMATRIX_TRANSPOSE);
 	KX_MACRO_addTypesToDict(d, MODELVIEWMATRIX_INVERSE, RAS_Shader::MODELVIEWMATRIX_INVERSE);
