@@ -1,8 +1,8 @@
 #include "KX_MaterialShader.h"
-#include "KX_BlenderMaterial.h"
+#include "KX_Material.h"
 #include "KX_GameObject.h"
 
-#include "BL_Shader.h"
+#include "KX_Shader.h"
 
 #include "RAS_MeshUser.h"
 
@@ -16,7 +16,7 @@
 
 #include "GPU_material.h"
 
-KX_MaterialShader::KX_MaterialShader(KX_BlenderMaterial *material, bool useLigthings, int alphaBlend)
+KX_MaterialShader::KX_MaterialShader(KX_Material *material, bool useLigthings, int alphaBlend)
 	:m_material(material),
 	m_useLightings(useLigthings),
 	m_attr(SHD_NONE),
@@ -48,12 +48,12 @@ bool KX_MaterialShader::LinkProgram()
 
 bool KX_MaterialShader::Ok() const
 {
-	return BL_Shader::Ok();
+	return KX_Shader::Ok();
 }
 
 bool KX_MaterialShader::GetError() const
 {
-	return BL_Shader::GetError();
+	return KX_Shader::GetError();
 }
 
 #ifdef WITH_PYTHON
@@ -151,7 +151,7 @@ const RAS_AttributeArray::AttribList KX_MaterialShader::GetAttribs(const RAS_Mes
 		/* Here textures can return false to Ok() because we're looking only at
 		 * texture attributes and not texture bind id like for the binding and
 		 * unbinding of textures. A nullptr RAS_Texture means that the corresponding
-		 * mtex is nullptr too (see KX_BlenderMaterial::InitTextures).*/
+		 * mtex is nullptr too (see KX_Material::InitTextures).*/
 		if (texture) {
 			MTex *mtex = texture->GetMTex();
 			if (mtex->texco & (TEXCO_OBJECT | TEXCO_REFL)) {
@@ -226,7 +226,7 @@ PyTypeObject KX_MaterialShader::Type = {
 	Methods,
 	0,
 	0,
-	&BL_Shader::Type,
+	&KX_Shader::Type,
 	0, 0, 0, 0, 0, 0,
 	py_base_new
 };
@@ -272,7 +272,7 @@ EXP_PYMETHODDEF_DOC(KX_MaterialShader, setAttrib, "setAttrib(enum)")
 	attr = SHD_TANGENT; // user input is ignored for now, there is only 1 attr
 
 	if (!m_shader) {
-		PyErr_SetString(PyExc_ValueError, "shader.setAttrib() BL_Shader, invalid shader object");
+		PyErr_SetString(PyExc_ValueError, "shader.setAttrib() KX_Shader, invalid shader object");
 		return nullptr;
 	}
 

@@ -1,5 +1,5 @@
 
-/** \file KX_BlenderMaterial.h
+/** \file KX_Material.h
  *  \ingroup ketsji
  */
 
@@ -19,16 +19,16 @@ class BL_MaterialShader;
 struct Material;
 
 #ifdef USE_MATHUTILS
-void KX_BlenderMaterial_Mathutils_Callback_Init(void);
+void KX_Material_Mathutils_Callback_Init(void);
 #endif
 
-class KX_BlenderMaterial : public EXP_Value, public BL_Resource, public RAS_IMaterial
+class KX_Material : public EXP_Value, public BL_Resource, public RAS_IMaterial
 {
 	Py_Header
 
 public:
-	KX_BlenderMaterial(Material *mat, const std::string& name, KX_Scene *scene);
-	virtual ~KX_BlenderMaterial();
+	KX_Material(Material *mat, const std::string& name, KX_Scene *scene);
+	virtual ~KX_Material();
 
 	bool GetUserBlend() const;
 	const RAS_Rasterizer::BlendFunc (&GetBlendFunc() const)[2];
@@ -85,10 +85,10 @@ public:
 	PyObject *py_get_textures_item(unsigned int index);
 	std::string py_get_textures_item_name(unsigned int index);
 
-	EXP_PYMETHOD_DOC(KX_BlenderMaterial, getShader);
-	EXP_PYMETHOD_DOC(KX_BlenderMaterial, getTextureBindcode);
+	EXP_PYMETHOD_DOC(KX_Material, getShader);
+	EXP_PYMETHOD_DOC(KX_Material, getTextureBindcode);
 
-	EXP_PYMETHOD_DOC(KX_BlenderMaterial, setBlending);
+	EXP_PYMETHOD_DOC(KX_Material, setBlending);
 
 #endif  // WITH_PYTHON
 
@@ -116,7 +116,7 @@ private:
 };
 
 #ifdef WITH_PYTHON
-bool ConvertPythonToMaterial(PyObject *value, KX_BlenderMaterial **material, bool py_none_ok, const char *error_prefix);
+bool ConvertPythonToMaterial(PyObject *value, KX_Material **material, bool py_none_ok, const char *error_prefix);
 #endif  // WITH_PYTHON
 
 #endif

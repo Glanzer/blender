@@ -39,7 +39,7 @@
 #include "KX_Globals.h"
 #include "BLI_utildefines.h"
 #include "KX_KetsjiEngine.h"
-#include "KX_BlenderMaterial.h"
+#include "KX_Material.h"
 #include "KX_FontObject.h"
 #include "RAS_IMaterial.h"
 #include "EXP_ListValue.h"
@@ -1411,7 +1411,7 @@ void KX_Scene::RenderBuckets(const std::vector<KX_GameObject *>& objects, RAS_Ra
 	}
 
 	m_bucketmanager->Renderbuckets(drawingMode, cameratransform, rasty, offScreen);
-	KX_BlenderMaterial::EndFrame(rasty);
+	KX_Material::EndFrame(rasty);
 }
 
 void KX_Scene::RenderTextureRenderers(KX_TextureRendererManager::RendererCategory category, RAS_Rasterizer *rasty,

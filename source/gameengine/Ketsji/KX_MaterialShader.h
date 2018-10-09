@@ -2,13 +2,13 @@
 #define __KX_CUSTOM_MATERIAL_SHADER_H__
 
 #include "RAS_IMaterialShader.h"
-#include "BL_Shader.h"
+#include "KX_Shader.h"
 
-class KX_BlenderMaterial;
+class KX_Material;
 
 /** \brief material shader using a custom shader.
  */
-class KX_MaterialShader : public RAS_IMaterialShader, public BL_Shader
+class KX_MaterialShader : public RAS_IMaterialShader, public KX_Shader
 {
 	Py_Header
 
@@ -25,7 +25,7 @@ public:
 	};
 
 private:
-	KX_BlenderMaterial *m_material;
+	KX_Material *m_material;
 	bool m_useLightings;
 	AttribTypes m_attr;
 	int m_alphaBlend;
@@ -37,7 +37,7 @@ private:
 	virtual bool LinkProgram();
 
 public:
-	KX_MaterialShader(KX_BlenderMaterial *material, bool useLightings, int alphaBlend);
+	KX_MaterialShader(KX_Material *material, bool useLightings, int alphaBlend);
 	virtual ~KX_MaterialShader();
 
 	bool Ok() const;

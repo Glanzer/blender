@@ -101,7 +101,7 @@ PyTypeObject KX_2DFilter::Type = {
 	Methods,
 	0,
 	0,
-	&BL_Shader::Type,
+	&KX_Shader::Type,
 	0, 0, 0, 0, 0, 0,
 	py_base_new
 };
@@ -131,7 +131,7 @@ int KX_2DFilter::pyattr_set_mipmap(EXP_PyObjectPlus *self_v, const EXP_PYATTRIBU
 	KX_2DFilter *self = static_cast<KX_2DFilter *>(self_v);
 	int param = PyObject_IsTrue(value);
 	if (param == -1) {
-		PyErr_SetString(PyExc_AttributeError, "shader.enabled = bool: BL_Shader, expected True or False");
+		PyErr_SetString(PyExc_AttributeError, "shader.enabled = bool: KX_Shader, expected True or False");
 		return PY_SET_ATTR_FAIL;
 	}
 

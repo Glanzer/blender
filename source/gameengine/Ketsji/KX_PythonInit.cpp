@@ -112,7 +112,7 @@ extern "C" {
 
 #include "KX_NetworkMessageScene.h" //Needed for sendMessage()
 
-#include "BL_Shader.h"
+#include "KX_Shader.h"
 #include "BL_Action.h"
 
 #include "KX_PyMath.h"

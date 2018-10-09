@@ -46,7 +46,7 @@
 #include "KX_WorldInfo.h"
 #include "KX_ArmatureSensor.h"
 #include "KX_BatchGroup.h"
-#include "KX_BlenderMaterial.h"
+#include "KX_Material.h"
 #include "KX_BoundingBox.h"
 #include "KX_Camera.h"
 #include "KX_CameraActuator.h"
@@ -212,7 +212,7 @@ PyMODINIT_FUNC initGameTypesPythonBinding(void)
 
 	for (int init_getset = 1; init_getset > -1; init_getset--) { /* run twice, once to init the getsets another to run PyType_Ready */
 		PyType_Ready_Attr(dict, BL_ActionActuator, init_getset);
-		PyType_Ready_Attr(dict, BL_Shader, init_getset);
+		PyType_Ready_Attr(dict, KX_Shader, init_getset);
 		PyType_Ready_Attr(dict, BL_ArmatureObject, init_getset);
 		PyType_Ready_Attr(dict, BL_ArmatureActuator, init_getset);
 		PyType_Ready_Attr(dict, BL_ArmatureConstraint, init_getset);
@@ -228,7 +228,7 @@ PyMODINIT_FUNC initGameTypesPythonBinding(void)
 		PyType_Ready_Attr(dict, KX_2DFilterOffScreen, init_getset);
 		PyType_Ready_Attr(dict, KX_ArmatureSensor, init_getset);
 		PyType_Ready_Attr(dict, KX_BatchGroup, init_getset);
-		PyType_Ready_Attr(dict, KX_BlenderMaterial, init_getset);
+		PyType_Ready_Attr(dict, KX_Material, init_getset);
 		PyType_Ready_Attr(dict, KX_BoundingBox, init_getset);
 		PyType_Ready_Attr(dict, KX_Camera, init_getset);
 		PyType_Ready_Attr(dict, KX_CameraActuator, init_getset);
@@ -313,7 +313,7 @@ PyMODINIT_FUNC initGameTypesPythonBinding(void)
 	KX_GameObject_Mathutils_Callback_Init();
 	KX_ObjectActuator_Mathutils_Callback_Init();
 	KX_WorldInfo_Mathutils_Callback_Init();
-	KX_BlenderMaterial_Mathutils_Callback_Init();
+	KX_Material_Mathutils_Callback_Init();
 	KX_BoundingBox_Mathutils_Callback_Init();
 	BL_Texture_Mathutils_Callback_Init();
 #endif

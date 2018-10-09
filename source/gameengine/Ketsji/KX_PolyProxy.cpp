@@ -38,7 +38,7 @@
 #include "RAS_MaterialBucket.h"
 #include "RAS_DisplayArray.h"
 #include "KX_VertexProxy.h"
-#include "KX_BlenderMaterial.h"
+#include "KX_Material.h"
 #include "EXP_ListWrapper.h"
 
 #include "KX_PyMath.h"
@@ -261,7 +261,7 @@ EXP_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterial,
                            "getMaterial() : returns a material\n")
 {
 	RAS_MeshMaterial *meshmat = m_mesh->GetMeshMaterial(m_polygon.matId);
-	KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial *>(meshmat->GetBucket()->GetMaterial());
+	KX_Material *mat = static_cast<KX_Material *>(meshmat->GetBucket()->GetMaterial());
 	return mat->GetProxy();
 }
 

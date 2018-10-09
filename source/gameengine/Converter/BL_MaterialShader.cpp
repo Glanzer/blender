@@ -39,11 +39,11 @@
 #include "RAS_IMaterial.h"
 
 #include "KX_Scene.h"
-#include "KX_BlenderMaterial.h"
+#include "KX_Material.h"
 
 #include <cstring>
 
-BL_MaterialShader::BL_MaterialShader(KX_Scene *scene, KX_BlenderMaterial *material, Material *ma, int alphaBlend)
+BL_MaterialShader::BL_MaterialShader(KX_Scene *scene, KX_Material *material, Material *ma, int alphaBlend)
 	:m_blenderScene(scene->GetBlenderScene()),
 	m_mat(ma),
 	m_alphaBlend(alphaBlend),

@@ -88,7 +88,7 @@
 #include "KX_PythonComponent.h"
 #include "KX_WorldInfo.h"
 #include "KX_Mesh.h"
-#include "KX_BlenderMaterial.h"
+#include "KX_Material.h"
 #include "KX_TextureRendererManager.h"
 #include "KX_Globals.h"
 #include "KX_PyConstraintBinding.h"
@@ -426,7 +426,7 @@ static void BL_GetUvRgba(const RAS_Mesh::LayersInfo& layersInfo, std::vector<MLo
 
 static RAS_MaterialBucket *BL_ConvertMaterial(Material *ma, KX_Scene *scene, BL_SceneConverter& converter)
 {
-	KX_BlenderMaterial *mat = converter.FindMaterial(ma);
+	KX_Material *mat = converter.FindMaterial(ma);
 
 	if (!mat) {
 		std::string name = ma->id.name;
@@ -435,14 +435,14 @@ static RAS_MaterialBucket *BL_ConvertMaterial(Material *ma, KX_Scene *scene, BL_
 			name = "MA";
 		}
 
-		mat = new KX_BlenderMaterial(ma, name, scene);
+		mat = new KX_Material(ma, name, scene);
 
 		// this is needed to free up memory afterwards.
 		converter.RegisterMaterial(mat, ma);
 	}
 
 	// see if a bucket was reused or a new one was created
-	// this way only one KX_BlenderMaterial object has to exist per bucket
+	// this way only one KX_Material object has to exist per bucket
 	RAS_MaterialBucket *bucket = scene->GetBucketManager()->FindBucket(mat);
 
 	return bucket;
@@ -1868,7 +1868,7 @@ void BL_PostConvertBlenderObjects(KX_Scene *kxscene, const BL_SceneConverter& sc
 #endif  // WITH_PYTHON
 
 	// Init textures for all materials.
-	for (KX_BlenderMaterial *mat : sceneconverter.GetMaterials()) {
+	for (KX_Material *mat : sceneconverter.GetMaterials()) {
 		mat->InitTextures();
 	}
 

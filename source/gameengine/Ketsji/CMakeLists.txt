@@ -69,14 +69,14 @@ set(INC_SYS
 set(SRC
 	BL_Action.cpp
 	BL_ActionManager.cpp
-	BL_Shader.cpp
+	KX_Shader.cpp
 	BL_Texture.cpp
 	KX_2DFilter.cpp
 	KX_2DFilterManager.cpp
 	KX_2DFilterOffScreen.cpp
 	KX_ArmatureSensor.cpp
 	KX_BatchGroup.cpp
-	KX_BlenderMaterial.cpp
+	KX_Material.cpp
 	KX_BoundingBox.cpp
 	KX_Camera.cpp
 	KX_CameraActuator.cpp
@@ -151,14 +151,14 @@ set(SRC
 
 	BL_Action.h
 	BL_ActionManager.h
-	BL_Shader.h
+	KX_Shader.h
 	BL_Texture.h
 	KX_2DFilter.h
 	KX_2DFilterManager.h
 	KX_2DFilterOffScreen.h
 	KX_ArmatureSensor.h
 	KX_BatchGroup.h
-	KX_BlenderMaterial.h
+	KX_Material.h
 	KX_BoundingBox.h
 	KX_Camera.h
 	KX_CameraActuator.h

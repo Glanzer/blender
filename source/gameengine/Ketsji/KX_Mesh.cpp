@@ -44,7 +44,7 @@
 #include "KX_VertexProxy.h"
 #include "KX_PolyProxy.h"
 
-#include "KX_BlenderMaterial.h"
+#include "KX_Material.h"
 
 #include "KX_PyMath.h"
 
@@ -358,7 +358,7 @@ PyObject *KX_Mesh::PyReplaceMaterial(PyObject *args, PyObject *kwds)
 {
 	unsigned short matindex;
 	PyObject *pymat;
-	KX_BlenderMaterial *mat;
+	KX_Material *mat;
 
 	if (!PyArg_ParseTuple(args, "hO:replaceMaterial", &matindex, &pymat) ||
 	    !ConvertPythonToMaterial(pymat, &mat, false, "mesh.replaceMaterial(...): invalid material")) {
@@ -480,7 +480,7 @@ PyObject *KX_Mesh::pyattr_get_materials(EXP_PyObjectPlus *self_v, const EXP_PYAT
 
 	for (unsigned short i = 0; i < tot; ++i) {
 		RAS_MeshMaterial *mmat = self->m_materials[i];
-		KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial *>(mmat->GetBucket()->GetMaterial());
+		KX_Material *mat = static_cast<KX_Material *>(mmat->GetBucket()->GetMaterial());
 		PyList_SET_ITEM(materials, i, mat->GetProxy());
 	}
 	return materials;
