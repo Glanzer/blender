@@ -34,7 +34,6 @@
 #include "KX_PythonInitTypes.h"
 
 /* Only for Class::Parents */
-#include "BL_Shader.h"
 #include "BL_ActionActuator.h"
 #include "BL_ArmatureActuator.h"
 #include "BL_ArmatureConstraint.h"
@@ -61,6 +60,7 @@
 #include "KX_LodLevel.h"
 #include "KX_LodManager.h"
 #include "KX_FontObject.h"
+#include "KX_MaterialShader.h"
 #include "KX_Mesh.h"
 #include "KX_MouseFocusSensor.h"
 #include "KX_NetworkMessageActuator.h"
@@ -243,6 +243,7 @@ PyMODINIT_FUNC initGameTypesPythonBinding(void)
 		PyType_Ready_Attr(dict, KX_LodLevel, init_getset);
 		PyType_Ready_Attr(dict, KX_LodManager, init_getset);
 		PyType_Ready_Attr(dict, KX_FontObject, init_getset);
+		PyType_Ready_Attr(dict, KX_MaterialShader, init_getset);
 		PyType_Ready_Attr(dict, KX_Mesh, init_getset);
 		PyType_Ready_Attr(dict, KX_MouseFocusSensor, init_getset);
 		PyType_Ready_Attr(dict, KX_MovementSensor, init_getset);
