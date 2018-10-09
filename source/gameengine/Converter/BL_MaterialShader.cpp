@@ -39,6 +39,7 @@
 #include "RAS_IMaterial.h"
 
 #include "KX_Scene.h"
+#include "KX_BlenderMaterial.h"
 
 #include <cstring>
 
@@ -77,8 +78,7 @@ void BL_MaterialShader::ReloadMaterial()
 
 	m_gpuMat = GPU_material_from_blender(m_blenderScene, m_mat, flags);
 
-// 	m_material->NotifyShaderReloaded();
-// 	m_updateServer->NotifyUpdate(RAS_IMaterial::SHADER_MODIFIED);
+	m_material->NotifyUpdate(RAS_IMaterial::SHADER_MODIFIED);
 }
 
 void BL_MaterialShader::Activate(RAS_Rasterizer *rasty)
