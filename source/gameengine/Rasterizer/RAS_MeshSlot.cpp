@@ -94,7 +94,7 @@ void RAS_MeshSlot::RunNode(const RAS_MeshSlotNodeTuple& tuple)
 	shaderData->m_shader->ActivateMeshSlot(this, rasty, managerData->m_trans);
 
 	{
-		if (materialData->m_zsort && storage) { // TODO not with shadow
+		if (materialData->m_zsort && storage) { // TODO not with shadow actualiser m_zsort avec le mode de shader
 			displayArrayData->m_array->SortPolygons(
 					managerData->m_trans * mt::mat4::ToAffineTransform(m_meshUser->GetMatrix()), storage->GetIndexMap());
 			storage->FlushIndexMap();

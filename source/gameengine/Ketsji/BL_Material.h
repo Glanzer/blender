@@ -19,10 +19,10 @@ class BL_MaterialShader;
 struct Material;
 
 #ifdef USE_MATHUTILS
-void KX_Material_Mathutils_Callback_Init(void);
+void BL_Material_Mathutils_Callback_Init(void);
 #endif
 
-class KX_Material : public EXP_Value, public BL_Resource, public RAS_IMaterial
+class BL_Material : public EXP_Value, public BL_Resource, public RAS_IMaterial
 {
 	Py_Header
 

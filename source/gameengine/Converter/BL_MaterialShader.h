@@ -42,7 +42,7 @@ struct Material;
 struct Scene;
 struct GPUMaterial;
 class KX_Scene;
-class KX_Material;
+class BL_Material;
 
 /**
  * BL_MaterialShader
@@ -60,10 +60,10 @@ private:
 	/// GPU Material conatining the actual shader.
 	GPUMaterial *m_gpuMat;
 	/// The material using this material shader.
-	KX_Material *m_material;
+	BL_Material *m_material;
 
 public:
-	BL_MaterialShader(KX_Scene *scene, KX_Material *material, Material *ma, int alphaBlend);
+	BL_MaterialShader(KX_Scene *scene, BL_Material *material, Material *ma, int alphaBlend);
 	virtual ~BL_MaterialShader();
 
 	bool Ok() const;

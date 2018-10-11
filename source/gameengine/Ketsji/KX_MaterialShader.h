@@ -4,7 +4,7 @@
 #include "RAS_IMaterialShader.h"
 #include "KX_Shader.h"
 
-class KX_Material;
+class BL_Material;
 
 /** \brief material shader using a custom shader.
  */
@@ -25,7 +25,7 @@ public:
 	};
 
 private:
-	KX_Material *m_material;
+	BL_Material *m_material;
 	bool m_useLightings;
 	AttribTypes m_attr;
 	int m_alphaBlend;
@@ -37,7 +37,7 @@ private:
 	virtual bool LinkProgram();
 
 public:
-	KX_MaterialShader(KX_Material *material, bool useLightings, int alphaBlend);
+	KX_MaterialShader(BL_Material *material, bool useLightings, int alphaBlend);
 	virtual ~KX_MaterialShader();
 
 	bool Ok() const;

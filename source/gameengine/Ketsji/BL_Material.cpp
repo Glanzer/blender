@@ -23,14 +23,14 @@
  */
 
 #include "BL_Material.h"
+#include "BL_MaterialShader.h"
+
 #include "KX_Scene.h"
 #include "KX_PyMath.h"
-
-#include "BL_MaterialShader.h"
+#include "KX_MaterialShader.h"
 
 #include "EXP_ListWrapper.h"
 
-#include "KX_MaterialShader.h"
 #include "RAS_OverrideShader.h"
 #include "RAS_BucketManager.h"
 #include "RAS_Rasterizer.h"
@@ -407,7 +407,7 @@ static Mathutils_Callback mathutils_kxblendermaterial_color_cb = {
 };
 
 
-void KX_Material_Mathutils_Callback_Init()
+void BL_Material_Mathutils_Callback_Init()
 {
 	// register mathutils callbacks, ok to run more than once.
 	mathutils_kxblendermaterial_color_cb_index = Mathutils_RegisterCallback(&mathutils_kxblendermaterial_color_cb);
@@ -444,7 +444,7 @@ PyAttributeDef BL_Material::Attributes[] = {
 
 PyTypeObject BL_Material::Type = {
 	PyVarObject_HEAD_INIT(nullptr, 0)
-	"KX_Material",
+	"BL_Material",
 	sizeof(EXP_PyObjectPlus_Proxy),
 	0,
 	py_base_dealloc,
@@ -817,7 +817,7 @@ bool ConvertPythonToMaterial(PyObject *value, BL_Material **material, bool py_no
 			return true;
 		}
 		else {
-			PyErr_Format(PyExc_TypeError, "%s, expected KX_Material or a KX_Material name, None is invalid", error_prefix);
+			PyErr_Format(PyExc_TypeError, "%s, expected BL_Material or a BL_Material name, None is invalid", error_prefix);
 			return false;
 		}
 	}
@@ -841,7 +841,7 @@ bool ConvertPythonToMaterial(PyObject *value, BL_Material **material, bool py_no
 		PyErr_Format(PyExc_TypeError, "%s, expect a BL_Material, a string or None", error_prefix);
 	}
 	else {
-		PyErr_Format(PyExc_TypeError, "%s, expect a KX_Material or a string", error_prefix);
+		PyErr_Format(PyExc_TypeError, "%s, expect a BL_Material or a string", error_prefix);
 	}
 
 	return false;

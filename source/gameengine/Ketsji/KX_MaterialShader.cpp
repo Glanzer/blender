@@ -1,5 +1,5 @@
 #include "KX_MaterialShader.h"
-#include "KX_Material.h"
+#include "BL_Material.h"
 #include "KX_GameObject.h"
 
 #include "KX_Shader.h"
@@ -16,7 +16,7 @@
 
 #include "GPU_material.h"
 
-KX_MaterialShader::KX_MaterialShader(KX_Material *material, bool useLigthings, int alphaBlend)
+KX_MaterialShader::KX_MaterialShader(BL_Material *material, bool useLigthings, int alphaBlend)
 	:m_material(material),
 	m_useLightings(useLigthings),
 	m_attr(SHD_NONE),
@@ -151,7 +151,7 @@ const RAS_AttributeArray::AttribList KX_MaterialShader::GetAttribs(const RAS_Mes
 		/* Here textures can return false to Ok() because we're looking only at
 		 * texture attributes and not texture bind id like for the binding and
 		 * unbinding of textures. A nullptr RAS_Texture means that the corresponding
-		 * mtex is nullptr too (see KX_Material::InitTextures).*/
+		 * mtex is nullptr too (see BL_Material::InitTextures).*/
 		if (texture) {
 			MTex *mtex = texture->GetMTex();
 			if (mtex->texco & (TEXCO_OBJECT | TEXCO_REFL)) {

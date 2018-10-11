@@ -76,7 +76,7 @@ set(SRC
 	KX_2DFilterOffScreen.cpp
 	KX_ArmatureSensor.cpp
 	KX_BatchGroup.cpp
-	KX_Material.cpp
+	BL_Material.cpp
 	KX_BoundingBox.cpp
 	KX_Camera.cpp
 	KX_CameraActuator.cpp
@@ -158,7 +158,7 @@ set(SRC
 	KX_2DFilterOffScreen.h
 	KX_ArmatureSensor.h
 	KX_BatchGroup.h
-	KX_Material.h
+	BL_Material.h
 	KX_BoundingBox.h
 	KX_Camera.h
 	KX_CameraActuator.h

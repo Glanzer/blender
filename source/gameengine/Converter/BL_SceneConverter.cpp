@@ -34,7 +34,7 @@
 #include "BL_ActionData.h"
 #include "KX_GameObject.h"
 #include "KX_Mesh.h"
-#include "KX_Material.h"
+#include "BL_Material.h"
 
 #include "CM_List.h"
 #include "CM_Map.h"
@@ -111,7 +111,7 @@ KX_Mesh *BL_SceneConverter::FindGameMesh(Mesh *for_blendermesh) const
 	return CM_MapGetItemNoInsert(m_map_mesh_to_gamemesh, for_blendermesh);
 }
 
-void BL_SceneConverter::RegisterMaterial(KX_Material *blmat, Material *mat)
+void BL_SceneConverter::RegisterMaterial(BL_Material *blmat, Material *mat)
 {
 	blmat->SetOwner(m_libraryId);
 
@@ -121,7 +121,7 @@ void BL_SceneConverter::RegisterMaterial(KX_Material *blmat, Material *mat)
 	m_materials.push_back(blmat);
 }
 
-KX_Material *BL_SceneConverter::FindMaterial(Material *mat) const
+BL_Material *BL_SceneConverter::FindMaterial(Material *mat) const
 {
 	return CM_MapGetItemNoInsert(m_map_mesh_to_polyaterial, mat);
 }
@@ -171,7 +171,7 @@ const std::vector<KX_GameObject *> &BL_SceneConverter::GetObjects() const
 	return m_objects;
 }
 
-const std::vector<KX_Material *> &BL_SceneConverter::GetMaterials() const
+const std::vector<BL_Material *> &BL_SceneConverter::GetMaterials() const
 {
 	return m_materials;
 }
