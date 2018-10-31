@@ -53,6 +53,7 @@ class KX_RayCast;
 class KX_LodManager;
 class KX_PythonComponent;
 class KX_Mesh;
+class LOG_Tree;
 class RAS_MeshUser;
 class RAS_Deformer;
 class PHY_IGraphicController;
@@ -139,6 +140,7 @@ protected:
 	std::unique_ptr<SG_Node> m_sgNode;
 
 	std::unique_ptr<EXP_ListValue<KX_PythonComponent> > m_components;
+	LOG_Tree *m_logicTree;
 
 	std::unique_ptr<EXP_ListValue<KX_GameObject> > m_instanceObjects;
 	KX_GameObject*						m_dupliGroupObject;
@@ -811,8 +813,12 @@ public:
 	/// Add a components.
 	void SetComponents(EXP_ListValue<KX_PythonComponent> *components);
 
-	/// Updates the components.
-	void UpdateComponents();
+	LOG_Tree *GetLogicTree() const;
+	void SetLogicTree(LOG_Tree *tree);
+
+	bool UseLogic() const;
+	/// Updates components and logic tree.
+	void UpdateLogic();
 
 	KX_Scene*	GetScene();
 
