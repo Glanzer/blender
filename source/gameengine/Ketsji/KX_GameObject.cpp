@@ -31,7 +31,6 @@
  */
 
 #include "KX_GameObject.h"
-#include "KX_PythonComponent.h"
 #include "KX_Camera.h" // only for their ::Type
 #include "KX_LightObject.h"  // only for their ::Type
 #include "KX_FontObject.h"  // only for their ::Type
@@ -80,9 +79,6 @@
 
 #include "EXP_PropFloat.h"
 
-// Component stuff
-#include "DNA_python_component_types.h"
-
 // This file defines relationships between parents and children
 // in the game engine.
 
@@ -117,7 +113,6 @@ KX_GameObject::KX_GameObject(void *sgReplicationInfo,
 	m_physicsController(nullptr),
 	m_graphicController(nullptr),
 	m_sgNode(new SG_Node(this, sgReplicationInfo, callbacks)),
-	m_components(nullptr),
 	m_instanceObjects(nullptr),
 	m_dupliGroupObject(nullptr),
 	m_actionManager(nullptr)
@@ -149,7 +144,6 @@ KX_GameObject::KX_GameObject(const KX_GameObject& other)
 	m_physicsController(nullptr),
 	m_graphicController(nullptr),
 	m_sgNode(nullptr),
-	m_components(nullptr),
 	m_instanceObjects(nullptr),
 	m_dupliGroupObject(nullptr),
 	m_actionManager(nullptr)
@@ -168,14 +162,6 @@ KX_GameObject::KX_GameObject(const KX_GameObject& other)
 	}
 
 	Py_XINCREF(m_collisionCallbacks);
-
-	if (other.m_components) {
-		m_components.reset(other.m_components->GetReplica());
-
-		for (KX_PythonComponent *component : m_components) {
-			component->SetGameObject(this);
-		}
-	}
 #endif  // WITH_PYTHON
 }
 
@@ -1552,30 +1538,6 @@ std::vector<KX_GameObject *> KX_GameObject::GetChildrenRecursive() const
 	return list;
 }
 
-EXP_ListValue<KX_PythonComponent> *KX_GameObject::GetComponents() const
-{
-	return m_components.get();
-}
-
-void KX_GameObject::SetComponents(EXP_ListValue<KX_PythonComponent> *components)
-{
-	m_components.reset(components);
-}
-
-void KX_GameObject::UpdateComponents()
-{
-#ifdef WITH_PYTHON
-	if (!m_components) {
-		return;
-	}
-
-	for (KX_PythonComponent *comp : m_components) {
-		comp->Update();
-	}
-
-#endif // WITH_PYTHON
-}
-
 KX_Scene *KX_GameObject::GetScene()
 {
 	BLI_assert(m_sgNode);
@@ -1986,7 +1948,6 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	EXP_PYATTRIBUTE_RO_FUNCTION("childrenRecursive",    KX_GameObject, pyattr_get_children_recursive),
 	EXP_PYATTRIBUTE_RW_FUNCTION("color", KX_GameObject, pyattr_get_obcolor, pyattr_set_obcolor),
 	EXP_PYATTRIBUTE_RW_FUNCTION("debug",    KX_GameObject, pyattr_get_debug, pyattr_set_debug),
-	EXP_PYATTRIBUTE_RO_FUNCTION("components", KX_GameObject, pyattr_get_components),
 	EXP_PYATTRIBUTE_RW_FUNCTION("debugRecursive",   KX_GameObject, pyattr_get_debugRecursive, pyattr_set_debugRecursive),
 	EXP_PYATTRIBUTE_RW_FUNCTION("gravity", KX_GameObject, pyattr_get_gravity, pyattr_set_gravity),
 
@@ -3090,13 +3051,6 @@ int KX_GameObject::pyattr_set_obcolor(EXP_PyObjectPlus *self_v, const EXP_PYATTR
 
 	self->SetObjectColor(obcolor);
 	return PY_SET_ATTR_SUCCESS;
-}
-
-PyObject *KX_GameObject::pyattr_get_components(EXP_PyObjectPlus *self_v, const EXP_PYATTRIBUTE_DEF *attrdef)
-{
-	KX_GameObject *self = static_cast<KX_GameObject *>(self_v);
-	EXP_ListValue<KX_PythonComponent> *components = self->GetComponents();
-	return components ? components->GetProxy() : (new EXP_ListValue<KX_PythonComponent>())->NewProxy(true);
 }
 
 PyObject *KX_GameObject::pyattr_get_children(EXP_PyObjectPlus *self_v, const EXP_PYATTRIBUTE_DEF *attrdef)
