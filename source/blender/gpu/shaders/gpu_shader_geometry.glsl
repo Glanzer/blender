@@ -11,8 +11,8 @@ in block {
 } inpt[];
 
 /* compatibility */
-out vec3 varnormal;
-out vec3 varposition;
+varying vec3 varnormal;
+varying vec3 varposition;
 
 uniform bool osd_flat_shading;
 uniform int osd_fvar_count;

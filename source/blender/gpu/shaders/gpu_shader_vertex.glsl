@@ -21,8 +21,8 @@ flat out int varinstlayer;
 uniform mat4 unfviewmat;
 #endif
 
-out vec3 varposition;
-out vec3 varnormal;
+varying vec3 varposition;
+varying vec3 varnormal;
 
 #ifdef CLIP_WORKAROUND
 varying float gl_ClipDistance[6];
