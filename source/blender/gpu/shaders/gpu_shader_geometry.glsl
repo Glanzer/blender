@@ -5,6 +5,10 @@ uniform int osd_active_uv_offset;
   layout(lines_adjacency) in;
   layout(triangle_strip, max_vertices = 4) out;
 #endif
+  
+#if __VERSION__ < 130
+  #define texelFetch texelFetch2D
+#endif
 
 in block {
 	VertexData v;
