@@ -1,7 +1,7 @@
 
 #if __VERSION__ < 130
   #define texelFetch texelFetch2D
-  #define textureLod textureLod2D
+  #define textureLod texture2DLod
   #define textureSize textureSize2D
 #endif
 
