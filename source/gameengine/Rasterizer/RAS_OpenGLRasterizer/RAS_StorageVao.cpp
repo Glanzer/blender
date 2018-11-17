@@ -24,6 +24,7 @@
 #include "RAS_DisplayArrayStorage.h"
 #include "RAS_StorageVao.h"
 #include "RAS_StorageVbo.h"
+#include "GPU_extensions.h"
 
 struct AttribData {
 	int size;
@@ -42,8 +43,14 @@ static const AttribData attribData[RAS_AttributeArray::RAS_ATTRIB_MAX] = {
 RAS_StorageVao::RAS_StorageVao(const RAS_DisplayArrayLayout &layout, RAS_DisplayArrayStorage *arrayStorage,
                                const RAS_AttributeArray::AttribList& attribList)
 {
-	glGenVertexArrays(1, &m_id);
-	glBindVertexArray(m_id);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glGenVertexArrays(1, &m_id);
+		glBindVertexArray(m_id);
+	}
+	else {
+		glGenVertexArraysAPPLE(1, &m_id);
+		glBindVertexArrayAPPLE(m_id);
+	}
 
 	RAS_StorageVbo *vbo = arrayStorage->GetVbo();
 	vbo->BindVertexBuffer();
@@ -113,20 +120,40 @@ RAS_StorageVao::RAS_StorageVao(const RAS_DisplayArrayLayout &layout, RAS_Display
 	// VBO are not tracked by the VAO excepted for IBO.
 	vbo->UnbindVertexBuffer();
 
-	glBindVertexArray(0);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(0);
+	}
+	else {
+		glBindVertexArrayAPPLE(0);
+	}
 }
 
 RAS_StorageVao::~RAS_StorageVao()
 {
-	glDeleteVertexArrays(1, &m_id);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glDeleteVertexArrays(1, &m_id);
+	}
+	else {
+		glDeleteVertexArraysAPPLE(1, &m_id);
+	}
 }
 
 void RAS_StorageVao::BindPrimitives()
 {
-	glBindVertexArray(m_id);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(m_id);
+	}
+	else {
+		glBindVertexArrayAPPLE(m_id);
+	}
 }
 
 void RAS_StorageVao::UnbindPrimitives()
 {
-	glBindVertexArray(0);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(0);
+	}
+	else {
+		glBindVertexArrayAPPLE(0);
+	}
 }

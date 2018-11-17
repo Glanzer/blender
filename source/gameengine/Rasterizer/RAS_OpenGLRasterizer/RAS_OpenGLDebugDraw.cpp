@@ -32,6 +32,7 @@
 #include "GPU_material.h"
 #include "GPU_glew.h"
 #include "GPU_shader.h"
+#include "GPU_extensions.h"
 
 extern "C" {
 #  include "BLF_api.h"
@@ -105,9 +106,14 @@ RAS_OpenGLDebugDraw::RAS_OpenGLDebugDraw()
 	m_frustumSolidShader = GPU_shader_get_builtin_shader(GPU_SHADER_FRUSTUM_SOLID);
 	m_box2dShader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_BOX);
 
-	glGenVertexArrays(MAX_VAO, m_vaos);
-
-	glBindVertexArray(m_vaos[LINES_VAO]);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glGenVertexArrays(MAX_VAO, m_vaos);
+		glBindVertexArray(m_vaos[LINES_VAO]);
+	}
+	else {
+		glGenVertexArraysAPPLE(MAX_VAO, m_vaos);
+		glBindVertexArrayAPPLE(m_vaos[LINES_VAO]);
+	}
 	{
 		static const unsigned short stride = sizeof(RAS_DebugDraw::Line) / 2;
 		const unsigned int pos = GPU_shader_get_attribute(m_colorShader, "pos");
@@ -120,7 +126,12 @@ RAS_OpenGLDebugDraw::RAS_OpenGLDebugDraw()
 
 	static const unsigned short frustumStride = sizeof(RAS_DebugDraw::Frustum);
 
-	glBindVertexArray(m_vaos[FRUSTUMS_LINE_VAO]);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(m_vaos[FRUSTUMS_LINE_VAO]);
+	}
+	else {
+		glBindVertexArrayAPPLE(m_vaos[FRUSTUMS_LINE_VAO]);
+	}
 	{
 		const unsigned short pos = GPU_shader_get_attribute(m_frustumLineShader, "pos");
 		const unsigned short mat = GPU_shader_get_attribute(m_frustumLineShader, "mat");
@@ -136,7 +147,12 @@ RAS_OpenGLDebugDraw::RAS_OpenGLDebugDraw()
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibos[BOX_IBO]);
 	}
 
-	glBindVertexArray(m_vaos[FRUSTUMS_SOLID_VAO]);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(m_vaos[FRUSTUMS_SOLID_VAO]);
+	}
+	else {
+		glBindVertexArrayAPPLE(m_vaos[FRUSTUMS_SOLID_VAO]);
+	}
 	{
 		const unsigned short pos = GPU_shader_get_attribute(m_frustumSolidShader, "pos");
 		const unsigned short mat = GPU_shader_get_attribute(m_frustumSolidShader, "mat");
@@ -154,7 +170,12 @@ RAS_OpenGLDebugDraw::RAS_OpenGLDebugDraw()
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibos[BOX_IBO]);
 	}
 
-	glBindVertexArray(m_vaos[AABB_VAO]);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(m_vaos[AABB_VAO]);
+	}
+	else {
+		glBindVertexArrayAPPLE(m_vaos[AABB_VAO]);
+	}
 	{
 		static const unsigned short stride = sizeof(RAS_DebugDraw::Aabb);
 		const unsigned short pos = GPU_shader_get_attribute(m_frustumLineShader, "pos");
@@ -171,7 +192,12 @@ RAS_OpenGLDebugDraw::RAS_OpenGLDebugDraw()
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibos[BOX_IBO]);
 	}
 
-	glBindVertexArray(m_vaos[BOX_2D_VAO]);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(m_vaos[BOX_2D_VAO]);
+	}
+	else {
+		glBindVertexArrayAPPLE(m_vaos[BOX_2D_VAO]);
+	}
 	{
 		static const unsigned short stride = sizeof(RAS_DebugDraw::Box2d);
 		const unsigned short pos = GPU_shader_get_attribute(m_box2dShader, "pos");
@@ -186,7 +212,12 @@ RAS_OpenGLDebugDraw::RAS_OpenGLDebugDraw()
 		attribVector(trans, stride, offsetof(RAS_DebugDraw::Box2d, m_trans), 4, 1);
 	}
 
-	glBindVertexArray(0);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(0);
+	}
+	else {
+		glBindVertexArrayAPPLE(0);
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -194,7 +225,12 @@ RAS_OpenGLDebugDraw::~RAS_OpenGLDebugDraw()
 {
 	glDeleteBuffers(MAX_IBO, m_ibos);
 	glDeleteBuffers(MAX_VBO, m_vbos);
-	glDeleteVertexArrays(MAX_VAO, m_vaos);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glDeleteVertexArrays(MAX_VAO, m_vaos);
+	}
+	else {
+		glDeleteVertexArraysAPPLE(MAX_VAO, m_vaos);
+	}
 }
 
 void RAS_OpenGLDebugDraw::Flush(RAS_Rasterizer *rasty, RAS_ICanvas *canvas, RAS_DebugDraw *debugDraw)
@@ -209,7 +245,12 @@ void RAS_OpenGLDebugDraw::Flush(RAS_Rasterizer *rasty, RAS_ICanvas *canvas, RAS_
 	if (numlines > 0) {
 		updateVbo(m_vbos[LINES_VBO], lines);
 
-		glBindVertexArray(m_vaos[LINES_VAO]);
+		if (!GPU_vertex_array_object_via_extension()) {
+			glBindVertexArray(m_vaos[LINES_VAO]);
+		}
+		else {
+			glBindVertexArrayAPPLE(m_vaos[LINES_VAO]);
+		}
 		GPU_shader_bind(m_colorShader);
 		glDrawArrays(GL_LINES, 0, numlines * 2);
 	}
@@ -219,11 +260,21 @@ void RAS_OpenGLDebugDraw::Flush(RAS_Rasterizer *rasty, RAS_ICanvas *canvas, RAS_
 	if (numfrustums > 0) {
 		updateVbo(m_vbos[FRUSTUMS_VBO], frustums);
 
-		glBindVertexArray(m_vaos[FRUSTUMS_LINE_VAO]);
+		if (!GPU_vertex_array_object_via_extension()) {
+			glBindVertexArray(m_vaos[FRUSTUMS_LINE_VAO]);
+		}
+		else {
+			glBindVertexArrayAPPLE(m_vaos[FRUSTUMS_LINE_VAO]);
+		}
 		GPU_shader_bind(m_frustumLineShader);
 		glDrawElementsInstancedARB(GL_LINES, 24, GL_UNSIGNED_BYTE, nullptr, numfrustums);
 
-		glBindVertexArray(m_vaos[FRUSTUMS_SOLID_VAO]);
+		if (!GPU_vertex_array_object_via_extension()) {
+			glBindVertexArray(m_vaos[FRUSTUMS_SOLID_VAO]);
+		}
+		else {
+			glBindVertexArrayAPPLE(m_vaos[FRUSTUMS_SOLID_VAO]);
+		}
 		GPU_shader_bind(m_frustumSolidShader);
 		glDrawElementsInstancedARB(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, (const void *)(sizeof(GLubyte) * 24), numfrustums);
 	}
@@ -233,7 +284,12 @@ void RAS_OpenGLDebugDraw::Flush(RAS_Rasterizer *rasty, RAS_ICanvas *canvas, RAS_
 	if (numaabbs > 0) {
 		updateVbo(m_vbos[AABB_VBO], aabbs);
 
-		glBindVertexArray(m_vaos[AABB_VAO]);
+		if (!GPU_vertex_array_object_via_extension()) {
+			glBindVertexArray(m_vaos[AABB_VAO]);
+		}
+		else {
+			glBindVertexArrayAPPLE(m_vaos[AABB_VAO]);
+		}
 		GPU_shader_bind(m_frustumLineShader);
 		glDrawElementsInstancedARB(GL_LINES, 24, GL_UNSIGNED_BYTE, nullptr, numaabbs);
 	}
@@ -258,12 +314,22 @@ void RAS_OpenGLDebugDraw::Flush(RAS_Rasterizer *rasty, RAS_ICanvas *canvas, RAS_
 	if (numboxes > 0) {
 		updateVbo(m_vbos[BOX_2D_VBO], boxes2d);
 
-		glBindVertexArray(m_vaos[BOX_2D_VAO]);
+		if (!GPU_vertex_array_object_via_extension()) {
+			glBindVertexArray(m_vaos[BOX_2D_VAO]);
+		}
+		else {
+			glBindVertexArrayAPPLE(m_vaos[BOX_2D_VAO]);
+		}
 		GPU_shader_bind(m_box2dShader);
 		glDrawArraysInstancedARB(GL_TRIANGLE_FAN, 0, 4, numboxes);
 	}
 
-	glBindVertexArray(0);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(0);
+	}
+	else {
+		glBindVertexArrayAPPLE(0);
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	GPU_shader_unbind();
 

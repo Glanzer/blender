@@ -111,7 +111,12 @@ RAS_OpenGLRasterizer::ScreenPlane::ScreenPlane()
 	// Generate the VBO and IBO for screen overlay plane.
 	glGenBuffers(1, &m_vbo);
 	glGenBuffers(1, &m_ibo);
-	glGenVertexArrays(1, &m_vao);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glGenVertexArrays(1, &m_vao);
+	}
+	else {
+		glGenVertexArraysAPPLE(1, &m_vao);
+	}
 
 	// Vertexes for screen plane, it contains the vertex position (3 floats) and the vertex uv after (2 floats, total size = 5 floats).
 	static const float vertices[] = {
@@ -124,7 +129,12 @@ RAS_OpenGLRasterizer::ScreenPlane::ScreenPlane()
 	// Indices for screen plane.
 	static const GLubyte indices[] = {3, 2, 1, 0};
 
-	glBindVertexArray(m_vao);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(m_vao);
+	}
+	else {
+		glBindVertexArrayAPPLE(m_vao);
+	}
 
 	// Send indices in the sreen plane IBO.
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
@@ -145,24 +155,45 @@ RAS_OpenGLRasterizer::ScreenPlane::ScreenPlane()
 	// Unbind VBO
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(0);
+	}
+	else {
+		glBindVertexArrayAPPLE(0);
+	}
 	glBindVertexArray(0);
 }
 
 RAS_OpenGLRasterizer::ScreenPlane::~ScreenPlane()
 {
 	// Delete screen overlay plane VBO/IBO/VAO
-	glDeleteVertexArrays(1, &m_vao);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glDeleteVertexArrays(1, &m_vao);
+	}
+	else {
+		glDeleteVertexArraysAPPLE(1, &m_vao);
+	}
 	glDeleteBuffers(1, &m_vbo);
 	glDeleteBuffers(1, &m_ibo);
 }
 
 inline void RAS_OpenGLRasterizer::ScreenPlane::Render()
 {
-	glBindVertexArray(m_vao);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(m_vao);
+	}
+	else {
+		glBindVertexArrayAPPLE(m_vao);
+	}
 	// Draw in triangle fan mode to reduce IBO size.
 	glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_BYTE, 0);
 
-	glBindVertexArray(0);
+	if (!GPU_vertex_array_object_via_extension()) {
+		glBindVertexArray(0);
+	}
+	else {
+		glBindVertexArrayAPPLE(0);
+	}
 }
 
 RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_Rasterizer *rasterizer)

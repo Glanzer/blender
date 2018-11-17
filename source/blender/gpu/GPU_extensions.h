@@ -47,6 +47,7 @@ bool GPU_bicubic_bump_support(void);
 bool GPU_geometry_shader_support(void);
 bool GPU_geometry_shader_support_via_extension(void);
 bool GPU_instanced_drawing_support(void);
+bool GPU_vertex_array_object_via_extension(void);
 
 int GPU_max_texture_size(void);
 int GPU_max_textures(void);

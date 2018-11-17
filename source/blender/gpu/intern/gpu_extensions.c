@@ -65,6 +65,7 @@
  * ARB_texture_multisample: 3.2
  * EXT_geometry_shader4: 3.2
  * ARB_texture_query_lod: 4.0
+ * APPLE_vertex_array_object: 3.0
  */
 
 static struct GPUGlobal {
@@ -325,6 +326,11 @@ bool GPU_geometry_shader_support_via_extension(void)
 bool GPU_instanced_drawing_support(void)
 {
 	return GLEW_VERSION_3_1 || GLEW_ARB_draw_instanced;
+}
+
+bool GPU_vertex_array_object_via_extension(void)
+{
+	return (GLEW_APPLE_vertex_array_object && GPU_legacy_support());
 }
 
 int GPU_color_depth(void)
