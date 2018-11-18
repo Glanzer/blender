@@ -1,3 +1,7 @@
+#if __VERSION__ < 130
+  #define in varying
+  #define out varying
+#endif
 /*
  * Used the implementation of wide lines of Timo Suoranta (http://neure.dy.fi/wideline.html)
  */

@@ -1,3 +1,8 @@
+#if __VERSION__ < 130
+  #define in varying
+  #define out varying
+#endif
+
 /**
  * This fragment shader was initially found at http://fabiensanglard.net/shadowmappingVSM/index.php
  */

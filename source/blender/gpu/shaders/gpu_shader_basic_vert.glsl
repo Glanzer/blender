@@ -1,3 +1,7 @@
+#if __VERSION__ < 130
+  #define in varying
+  #define out varying
+#endif
 
 #if defined(USE_SOLID_LIGHTING) || defined(USE_SCENE_LIGHTING)
 #if defined(USE_FLAT_NORMAL)

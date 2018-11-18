@@ -5,6 +5,11 @@
   #define textureSize textureSize2D
 #endif
 
+#if __VERSION__ < 130
+  #define in varying
+  #define out varying
+#endif
+
 
 /* Converters */
 
