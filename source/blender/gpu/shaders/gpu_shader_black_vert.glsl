@@ -1,8 +1,3 @@
-#if __VERSION__ < 130
-  #define in varying
-  #define out varying
-#endif
-
 #ifdef USE_INSTANCING
 in mat3 ininstmatrix;
 in vec3 ininstposition;

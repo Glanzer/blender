@@ -1,8 +1,3 @@
-#if __VERSION__ < 130
-  #define in varying
-  #define out varying
-#endif
-
 #if defined(ANAGLYPH) || defined(STIPPLE)
 uniform sampler2D lefteyetex;
 uniform sampler2D righteyetex;

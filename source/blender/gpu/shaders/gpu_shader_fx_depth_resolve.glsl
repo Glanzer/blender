@@ -1,8 +1,3 @@
-#if __VERSION__ < 130
-  #define in varying
-  #define out varying
-#endif
-
 uniform sampler2D depthbuffer;
 varying vec4 uvcoordsvar;
 

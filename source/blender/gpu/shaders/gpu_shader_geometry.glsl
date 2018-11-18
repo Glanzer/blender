@@ -1,8 +1,3 @@
-#if __VERSION__ < 130
-  #define in varying
-  #define out varying
-#endif
-
 uniform int PrimitiveIdBase;
 uniform int osd_active_uv_offset;
 

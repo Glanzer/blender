@@ -1,8 +1,3 @@
-#if __VERSION__ < 130
-  #define in varying
-  #define out varying
-#endif
-
 varying vec3 coords;
 
 uniform sampler3D flame_texture;

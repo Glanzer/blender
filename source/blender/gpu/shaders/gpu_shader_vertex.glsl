@@ -1,8 +1,3 @@
-#if __VERSION__ < 130
-  #define in varying
-  #define out varying
-#endif
-
 #ifdef USE_OPENSUBDIV
 in vec3 normal;
 in vec4 position;

@@ -1,8 +1,3 @@
-#if __VERSION__ < 130
-  #define in varying
-  #define out varying
-#endif
-
 varying vec3 varposition;
 varying vec3 varnormal;
 
