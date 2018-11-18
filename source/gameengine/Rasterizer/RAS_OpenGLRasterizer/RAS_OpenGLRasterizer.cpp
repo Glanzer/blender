@@ -161,7 +161,6 @@ RAS_OpenGLRasterizer::ScreenPlane::ScreenPlane()
 	else {
 		glBindVertexArrayAPPLE(0);
 	}
-	glBindVertexArray(0);
 }
 
 RAS_OpenGLRasterizer::ScreenPlane::~ScreenPlane()

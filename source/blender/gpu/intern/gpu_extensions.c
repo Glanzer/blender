@@ -330,7 +330,7 @@ bool GPU_instanced_drawing_support(void)
 
 bool GPU_vertex_array_object_via_extension(void)
 {
-	return (GLEW_APPLE_vertex_array_object && GPU_legacy_support());
+	return (GLEW_APPLE_vertex_array_object);
 }
 
 int GPU_color_depth(void)
